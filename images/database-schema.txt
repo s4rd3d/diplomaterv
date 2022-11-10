@@ -1,0 +1,83 @@
+//// -- LEVEL 1
+//// -- Schemas, Tables and References
+
+// Creating tables
+// You can define the tables with full schema names
+Table xss.users {
+  user_id varchar [not null, pk]
+  event_count integer [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+}
+
+Table xss.sessions {
+  session_id varchar [not null, pk]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+}
+
+Table xss.streams {
+  stream_id varchar [not null, pk]
+  session_id varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+}
+
+Table xss.chunks {
+  stream_id varchar [not null]
+  sequence_number integer [not null]
+  session_id varchar [not null]
+  user_id varchar [not null]
+  epoch_unit varchar
+  epoch_value bigint
+  submitted_at timestamp
+  real_ip_address inet
+  peer_ip_address inet
+  referer varchar
+  chunk jsonb
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+  
+  indexes {
+    (stream_id, sequence_number) [pk]
+  }
+}
+
+Table xss.profiles {
+  profile_id varchar [not null, pk]
+  user_id varchar [not null]
+  profile_data bytea
+  succeeded_at timestamp
+  failed_at timestamp
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+}
+
+Table xss.verifications {
+  verification_id varchar [not null, pk]
+  profile_id varchar [not null]
+  stream_id varchar
+  last_chunk integer
+  chunk_count integer
+  result double
+  succeeded_at timestamp
+  failed_at timestamp
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp [null]
+}
+
+Ref: xss.users.user_id <> xss.sessions.session_id
+Ref: xss.users.user_id <> xss.streams.stream_id
+Ref: xss.streams.session_id > xss.sessions.session_id
+Ref: xss.chunks.user_id > xss.users.user_id
+Ref: xss.chunks.stream_id > xss.streams.stream_id 
+Ref: xss.chunks.session_id > xss.sessions.session_id
+Ref: xss.profiles.user_id > xss.users.user_id
+Ref: xss.verifications.profile_id > xss.profiles.profile_id
+Ref: xss.verifications.stream_id > xss.streams.stream_id
